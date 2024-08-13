@@ -19,7 +19,7 @@ class CRM_Beucmeps2024_Import {
       $i++;
 
       echo "Line $i...\n";
-      $stopAtLine = 10000000000;
+      $stopAtLine = 0;
       if ($i == 1 || $i < $stopAtLine) {
         continue;
       }
@@ -140,6 +140,7 @@ class CRM_Beucmeps2024_Import {
     $apiCall = \Civi\Api4\Contact::update(FALSE)
       ->addValue('prefix_id:label', $data[$this->colIndexes['prefix']] . '.')
       ->addValue('job_title', 'MEP')
+      ->addValue('employer_id', self::EP_CONTACT_ID)
       ->addWhere('id', '=', $contactId);
 
     if ($data[$this->colIndexes['mep_gender']] == 'male') {
