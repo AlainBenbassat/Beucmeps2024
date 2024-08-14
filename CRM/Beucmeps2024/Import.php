@@ -133,7 +133,7 @@ class CRM_Beucmeps2024_Import {
     $this->updatePhone($contactId, $data[$this->colIndexes['phone']]);
     $this->updateEmail($contactId, $data[$this->colIndexes['email']]);
     $this->updateWebsite($contactId, 'Work', $data[$this->colIndexes['mep_homepage']]);
-    $this->updateWebsite($contactId, 'MEP', $data[$this->colIndexes['mep_uri']]);
+    $this->updateWebsite($contactId, 'MEP', 'https://www.europarl.europa.eu/meps/en/' . $data[$this->colIndexes['id']]);
     $this->updateCommittee($contactId, $data[$this->colIndexes['committee']]);
   }
 
