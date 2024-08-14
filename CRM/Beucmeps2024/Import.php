@@ -11,6 +11,8 @@ class CRM_Beucmeps2024_Import {
     $this->assertFileExists($file);
     $f = $this->openFile($file);
 
+    $this->disableOldCommittees();
+
     $numCreated = 0;
     $numUpdated = 0;
     $i = 0;
@@ -98,7 +100,7 @@ class CRM_Beucmeps2024_Import {
     return $contactId;
   }
 
-  private function createRelationShip($sourceId, $targetId, $relTypeId) {
+  private function createRelationShip($sourceId, $targetId, $relTypeId, $startDate = NULL) {
     $this->debug(__METHOD__);
 
     $relationship = \Civi\Api4\Relationship::get(FALSE)
@@ -118,6 +120,7 @@ class CRM_Beucmeps2024_Import {
       ->addValue('contact_id_b', $targetId)
       ->addValue('relationship_type_id', $relTypeId)
       ->addValue('is_active', TRUE)
+      ->addValue('start_date', $startDate)
       ->execute();
   }
 
@@ -141,6 +144,7 @@ class CRM_Beucmeps2024_Import {
       ->addValue('prefix_id:label', $data[$this->colIndexes['prefix']] . '.')
       ->addValue('job_title', 'MEP')
       ->addValue('employer_id', self::EP_CONTACT_ID)
+      ->addValue('source', 'import August 2024')
       ->addWhere('id', '=', $contactId);
 
     if ($data[$this->colIndexes['mep_gender']] == 'male') {
@@ -199,11 +203,13 @@ class CRM_Beucmeps2024_Import {
       return;
     }
 
+    /*
     $sql = "select id from civicrm_phone where REGEXP_REPLACE(phone, '[-()+\\s]', '') = '$phone' and contact_id = $contactId";
     $phoneId = CRM_Core_DAO::singleValueQuery($sql);
     if ($phoneId) {
       return;
     }
+    */
 
     \Civi\Api4\Phone::delete(FALSE)
       ->addWhere('contact_id', '=', $contactId)
@@ -280,6 +286,19 @@ class CRM_Beucmeps2024_Import {
       ->execute();
   }
 
+  private function disableOldCommittees() {
+    $this->debug(__METHOD__);
+
+    \Civi\Api4\Relationship::update(FALSE)
+      ->addValue('is_active', FALSE)
+      ->addValue('end_date', '2024-06-30')
+      ->addWhere('end_date', 'IS NULL')
+      ->addWhere('start_date', '=', '2024-06-01')
+      ->addWhere('relationship_type_id', 'IN', [51, 50, 49, 48])
+      ->addWhere('contact_id_b.contact_sub_type', '=', 'EP_Committee')
+      ->execute();
+  }
+
   private function updateCommittee($contactId, $committees) {
     $this->debug(__METHOD__);
 
@@ -291,7 +310,7 @@ class CRM_Beucmeps2024_Import {
     foreach ($committeeList as $commitee) {
       echo "  committee = $commitee\n";
       $commiteeId = $this->getCommitteeId($commitee);
-      $this->createRelationShip($contactId, $commiteeId, self::REL_TYPE_ID_MEMBER);
+      $this->createRelationShip($contactId, $commiteeId, self::REL_TYPE_ID_MEMBER, '2024-07-01');
     }
   }
 
