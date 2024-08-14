@@ -36,6 +36,8 @@ class CRM_Beucmeps2024_Import {
       }
     }
 
+    \CRM_Contact_BAO_RelationshipCache::rebuild();
+    
     return "Created MEPS: $numCreated, Updated MEPS: $numUpdated";
   }
 
@@ -292,10 +294,10 @@ class CRM_Beucmeps2024_Import {
     \Civi\Api4\Relationship::update(FALSE)
       ->addValue('is_active', FALSE)
       ->addValue('end_date', '2024-06-30')
-      ->addWhere('end_date', 'IS NULL')
-      ->addWhere('start_date', '=', '2024-06-01')
-      ->addWhere('relationship_type_id', 'IN', [51, 50, 49, 48])
-      ->addWhere('contact_id_b.contact_sub_type', '=', 'EP_Committee')
+      ->addWhere('relationship_type_id', 'IN', [51, 50, 49, 48, 52])
+      ->addWhere('contact_id_b.contact_sub_type', 'IN', ['EP_Committee'])
+      ->addClause('OR', ['start_date', '<=', '2019-06-02'], ['start_date', 'IS NULL'])
+      ->addWhere('is_active', '=', TRUE)
       ->execute();
   }
 
